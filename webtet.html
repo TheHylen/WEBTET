@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WEBTET</title>
+<style>
+  :root{
+    --bg-deep:#0b0e14;
+    --bg-panel:#131826;
+    --grid-line:#1e2536;
+    --accent-cyan:#4be3d8;
+    --accent-magenta:#e34bd0;
+    --text-main:#e8ecf4;
+    --text-dim:#5c6478;
+    --piece-I:#4be3d8;
+    --piece-O:#e3c94b;
+    --piece-T:#b04be3;
+    --piece-S:#4be36a;
+    --piece-Z:#e34b5c;
+    --piece-J:#4b7fe3;
+    --piece-L:#e38a4b;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg-deep);
+    font-family:'Courier New', monospace;
+    color:var(--text-main);
+    overflow:hidden;
+    touch-action:none;
+    user-select:none;
+  }
+
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(75,227,216,0.06), transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(224,75,208,0.05), transparent 60%),
+      var(--bg-deep);
+  }
+
+  .title-block{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:14px;
+    letter-spacing:2px;
+  }
+  .title-block h1{
+    font-size:28px;
+    margin:0;
+    font-weight:700;
+    color:var(--text-main);
+    text-shadow:0 0 14px rgba(75,227,216,0.5), 0 0 2px var(--accent-cyan);
+  }
+  .title-block h1 span{ color:var(--accent-magenta); text-shadow:0 0 14px rgba(224,75,208,0.6);}
+  .title-block small{
+    color:var(--text-dim);
+    font-size:11px;
+    letter-spacing:3px;
+  }
+
+  /* ===== DESKTOP LAYOUT ===== */
+  #desktop-wrap{
+    display:none;
+    align-items:flex-start;
+    gap:26px;
+    flex-direction:column;
+    align-items:center;
+  }
+  .desktop-body{
+    display:flex;
+    gap:26px;
+    align-items:flex-start;
+  }
+  #board-frame{
+    background:var(--bg-panel);
+    padding:10px;
+    border-radius:6px;
+    border:1px solid var(--grid-line);
+    box-shadow:0 0 0 1px rgba(75,227,216,0.08), 0 20px 60px -20px rgba(0,0,0,0.8);
+  }
+  canvas#board{
+    display:block;
+    background:var(--bg-deep);
+    border-radius:3px;
+  }
+  .side-panel{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    width:170px;
+  }
+  .panel-box{
+    background:var(--bg-panel);
+    border:1px solid var(--grid-line);
+    border-radius:6px;
+    padding:12px 14px;
+  }
+  .panel-box .label{
+    font-size:10px;
+    letter-spacing:2px;
+    color:var(--text-dim);
+    margin-bottom:6px;
+  }
+  .panel-box .value{
+    font-size:22px;
+    font-weight:700;
+    color:var(--accent-cyan);
+    text-shadow:0 0 10px rgba(75,227,216,0.4);
+  }
+  canvas#next{
+    display:block;
+    background:var(--bg-deep);
+    border-radius:3px;
+    margin:0 auto;
+  }
+  .controls-help{
+    font-size:11px;
+    color:var(--text-dim);
+    line-height:1.9;
+  }
+  .controls-help b{ color:var(--text-main); }
+
+  /* ===== MOBILE LAYOUT ===== */
+  #mobile-wrap{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+    height:100vh;
+    padding:10px 8px 14px;
+    gap:8px;
+  }
+  .m-top-bar{
+    display:flex;
+    justify-content:space-between;
+    width:100%;
+    max-width:380px;
+    padding:0 4px;
+  }
+  .m-stat{
+    text-align:center;
+  }
+  .m-stat .label{
+    font-size:9px;
+    letter-spacing:1.5px;
+    color:var(--text-dim);
+  }
+  .m-stat .value{
+    font-size:16px;
+    font-weight:700;
+    color:var(--accent-cyan);
+  }
+  #m-board-frame{
+    background:var(--bg-panel);
+    padding:6px;
+    border-radius:6px;
+    border:1px solid var(--grid-line);
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:0;
+  }
+  canvas#board-m{
+    background:var(--bg-deep);
+    border-radius:3px;
+    max-height:100%;
+    max-width:100%;
+  }
+  .m-controls{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    width:100%;
+    max-width:380px;
+    gap:10px;
+  }
+  .m-dpad{
+    display:grid;
+    grid-template-columns:repeat(3, 52px);
+    grid-template-rows:repeat(2, 52px);
+    gap:6px;
+  }
+  .m-btn{
+    background:var(--bg-panel);
+    border:1px solid var(--grid-line);
+    border-radius:10px;
+    color:var(--text-main);
+    font-size:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    active-opacity:0.5;
+  }
+  .m-btn:active{ background:rgba(75,227,216,0.15); border-color:var(--accent-cyan); }
+  .m-left{ grid-column:1; grid-row:2; }
+  .m-rot{ grid-column:2; grid-row:1; font-size:18px;}
+  .m-right{ grid-column:3; grid-row:2; }
+  .m-down{ grid-column:2; grid-row:2; }
+  .m-side-actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .m-side-actions .m-btn{
+    width:66px; height:52px; border-radius:10px; font-size:12px; letter-spacing:1px;
+  }
+
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(11,14,20,0.88);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:14px;
+    z-index:50;
+    text-align:center;
+    padding:20px;
+  }
+  .overlay.show{ display:flex; }
+  .overlay h2{
+    font-size:26px;
+    color:var(--accent-magenta);
+    text-shadow:0 0 16px rgba(224,75,208,0.6);
+    margin:0;
+    letter-spacing:2px;
+  }
+  .overlay p{ color:var(--text-dim); font-size:13px; max-width:280px; }
+  .overlay button{
+    background:var(--accent-cyan);
+    color:#06141a;
+    border:none;
+    padding:12px 26px;
+    border-radius:8px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:1px;
+    cursor:pointer;
+  }
+
+  .credit{
+    position:fixed;
+    bottom:6px;
+    right:9px;
+    font-size:9px;
+    color:rgba(255,255,255,0.055);
+    letter-spacing:0.5px;
+    pointer-events:none;
+    z-index:1;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+
+<div id="desktop-wrap">
+  <div class="title-block"><h1>WEB<span>TET</span></h1><small>DESKTOP</small></div>
+  <div class="desktop-body">
+    <div id="board-frame"><canvas id="board"></canvas></div>
+    <div class="side-panel">
+      <div class="panel-box">
+        <div class="label">SCORE</div>
+        <div class="value" id="score-d">0</div>
+      </div>
+      <div class="panel-box">
+        <div class="label">LEVEL</div>
+        <div class="value" id="level-d">1</div>
+      </div>
+      <div class="panel-box">
+        <div class="label">LINES</div>
+        <div class="value" id="lines-d">0</div>
+      </div>
+      <div class="panel-box">
+        <div class="label">NEXT</div>
+        <canvas id="next" width="90" height="90"></canvas>
+      </div>
+      <div class="panel-box controls-help">
+        <b>&larr; &rarr;</b> harakat<br>
+        <b>&uarr;</b> aylantirish<br>
+        <b>&darr;</b> tez tushirish<br>
+        <b>SPACE</b> otib yuborish<br>
+        <b>P</b> pauza
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="mobile-wrap">
+  <div class="title-block" style="margin-bottom:2px;"><h1 style="font-size:22px;">WEB<span>TET</span></h1></div>
+  <div class="m-top-bar">
+    <div class="m-stat"><div class="label">SCORE</div><div class="value" id="score-m">0</div></div>
+    <div class="m-stat"><div class="label">LEVEL</div><div class="value" id="level-m">1</div></div>
+    <div class="m-stat"><div class="label">LINES</div><div class="value" id="lines-m">0</div></div>
+  </div>
+  <div id="m-board-frame"><canvas id="board-m"></canvas></div>
+  <div class="m-controls">
+    <div class="m-dpad">
+      <div class="m-btn m-left" id="btn-left">&larr;</div>
+      <div class="m-btn m-rot" id="btn-rot">&#8635;</div>
+      <div class="m-btn m-right" id="btn-right">&rarr;</div>
+      <div class="m-btn m-down" id="btn-down">&darr;</div>
+    </div>
+    <div class="m-side-actions">
+      <div class="m-btn" id="btn-drop">DROP</div>
+      <div class="m-btn" id="btn-pause">PAUZA</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <h2 id="overlay-title">WEBTET</h2>
+  <p id="overlay-text">Kliklarni boshqarish uchun tugmalardan foydalaning. Tayyor bo'lsangiz boshlang.</p>
+  <button id="overlay-btn">BOSHLASH</button>
+</div>
+
+<div class="credit">by Fayzullo</div>
+
+<script>
+(function(){
+  const COLS = 10, ROWS = 20;
+  const COLORS = {
+    I: getComputedStyle(document.documentElement).getPropertyValue('--piece-I').trim(),
+    O: getComputedStyle(document.documentElement).getPropertyValue('--piece-O').trim(),
+    T: getComputedStyle(document.documentElement).getPropertyValue('--piece-T').trim(),
+    S: getComputedStyle(document.documentElement).getPropertyValue('--piece-S').trim(),
+    Z: getComputedStyle(document.documentElement).getPropertyValue('--piece-Z').trim(),
+    J: getComputedStyle(document.documentElement).getPropertyValue('--piece-J').trim(),
+    L: getComputedStyle(document.documentElement).getPropertyValue('--piece-L').trim(),
+  };
+
+  const SHAPES = {
+    I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+    O: [[1,1],[1,1]],
+    T: [[0,1,0],[1,1,1],[0,0,0]],
+    S: [[0,1,1],[1,1,0],[0,0,0]],
+    Z: [[1,1,0],[0,1,1],[0,0,0]],
+    J: [[1,0,0],[1,1,1],[0,0,0]],
+    L: [[0,0,1],[1,1,1],[0,0,0]],
+  };
+  const TYPES = Object.keys(SHAPES);
+
+  // Detect touch/mobile
+  const isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || window.innerWidth < 820;
+
+  const desktopWrap = document.getElementById('desktop-wrap');
+  const mobileWrap = document.getElementById('mobile-wrap');
+  let boardCanvas, ctx, cell;
+  let nextCanvas, nextCtx;
+
+  if(isMobile){
+    mobileWrap.style.display = 'flex';
+    boardCanvas = document.getElementById('board-m');
+  } else {
+    desktopWrap.style.display = 'flex';
+    boardCanvas = document.getElementById('board');
+    nextCanvas = document.getElementById('next');
+    nextCtx = nextCanvas.getContext('2d');
+  }
+  ctx = boardCanvas.getContext('2d');
+
+  function sizeCanvas(){
+    if(isMobile){
+      const frame = document.getElementById('m-board-frame');
+      const availH = frame.clientHeight - 12;
+      const availW = frame.clientWidth - 12;
+      cell = Math.floor(Math.min(availH/ROWS, availW/COLS));
+      if(cell < 8) cell = 8;
+    } else {
+      cell = 28;
+    }
+    boardCanvas.width = COLS*cell;
+    boardCanvas.height = ROWS*cell;
+  }
+
+  let grid = createGrid();
+  function createGrid(){
+    const g = [];
+    for(let r=0;r<ROWS;r++) g.push(new Array(COLS).fill(null));
+    return g;
+  }
+
+  function randomType(){ return TYPES[Math.floor(Math.random()*TYPES.length)]; }
+
+  function newPiece(type){
+    return {
+      type: type,
+      shape: SHAPES[type].map(row=>row.slice()),
+      row: 0,
+      col: Math.floor((COLS - SHAPES[type][0].length)/2)
+    };
+  }
+
+  let current, nextType;
+  let score=0, level=1, linesCleared=0;
+  let dropInterval = 800;
+  let dropTimer = null;
+  let lastTime = 0;
+  let accumulator = 0;
+  let paused = true;
+  let gameOver = false;
+  let started = false;
+
+  function spawn(){
+    const t = nextType || randomType();
+    current = newPiece(t);
+    nextType = randomType();
+    drawNext();
+    if(collides(current, 0, 0)){
+      endGame();
+    }
+  }
+
+  function rotate(shape){
+    const n = shape.length;
+    const res = [];
+    for(let i=0;i<n;i++){
+      res.push([]);
+      for(let j=0;j<n;j++){
+        res[i][j] = shape[n-1-j][i];
+      }
+    }
+    return res;
+  }
+
+  function collides(piece, rowOff, colOff, shapeOverride){
+    const shape = shapeOverride || piece.shape;
+    for(let r=0;r<shape.length;r++){
+      for(let c=0;c<shape[r].length;c++){
+        if(!shape[r][c]) continue;
+        const nr = piece.row + r + rowOff;
+        const nc = piece.col + c + colOff;
+        if(nc < 0 || nc >= COLS || nr >= ROWS) return true;
+        if(nr >= 0 && grid[nr][nc]) return true;
+      }
+    }
+    return false;
+  }
+
+  function merge(){
+    const shape = current.shape;
+    for(let r=0;r<shape.length;r++){
+      for(let c=0;c<shape[r].length;c++){
+        if(shape[r][c]){
+          const nr = current.row + r;
+          const nc = current.col + c;
+          if(nr >= 0) grid[nr][nc] = current.type;
+        }
+      }
+    }
+  }
+
+  function clearLines(){
+    let cleared = 0;
+    for(let r=ROWS-1;r>=0;r--){
+      if(grid[r].every(cell=>cell)){
+        grid.splice(r,1);
+        grid.unshift(new Array(COLS).fill(null));
+        cleared++;
+        r++;
+      }
+    }
+    if(cleared>0){
+      const points = [0,100,300,500,800][cleared] * level;
+      score += points;
+      linesCleared += cleared;
+      level = 1 + Math.floor(linesCleared/10);
+      dropInterval = Math.max(120, 800 - (level-1)*70);
+      updateStats();
+    }
+  }
+
+  function updateStats(){
+    const s = String(score), l = String(level), ln = String(linesCleared);
+    if(isMobile){
+      document.getElementById('score-m').textContent = s;
+      document.getElementById('level-m').textContent = l;
+      document.getElementById('lines-m').textContent = ln;
+    } else {
+      document.getElementById('score-d').textContent = s;
+      document.getElementById('level-d').textContent = l;
+      document.getElementById('lines-d').textContent = ln;
+    }
+  }
+
+  function hardDrop(){
+    let dist = 0;
+    while(!collides(current, dist+1, 0)) dist++;
+    current.row += dist;
+    lockPiece();
+  }
+
+  function lockPiece(){
+    merge();
+    clearLines();
+    spawn();
+    render();
+  }
+
+  function tryMove(dr, dc){
+    if(!collides(current, dr, dc)){
+      current.row += dr;
+      current.col += dc;
+      render();
+      return true;
+    }
+    return false;
+  }
+
+  function tryRotate(){
+    const rotated = rotate(current.shape);
+    const kicks = [0, -1, 1, -2, 2];
+    for(const k of kicks){
+      if(!collides(current, 0, k, rotated)){
+        current.shape = rotated;
+        current.col += k;
+        render();
+        return;
+      }
+    }
+  }
+
+  function softDropStep(){
+    if(!collides(current, 1, 0)){
+      current.row += 1;
+    } else {
+      lockPiece();
+    }
+    render();
+  }
+
+  function drawCell(c, x, y, size, color){
+    c.fillStyle = color;
+    c.fillRect(x+1, y+1, size-2, size-2);
+    c.fillStyle = 'rgba(255,255,255,0.18)';
+    c.fillRect(x+1, y+1, size-2, Math.max(2,size*0.18));
+    c.strokeStyle = 'rgba(0,0,0,0.35)';
+    c.lineWidth = 1;
+    c.strokeRect(x+1, y+1, size-2, size-2);
+  }
+
+  function render(){
+    ctx.clearRect(0,0,boardCanvas.width, boardCanvas.height);
+    // grid lines
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid-line').trim();
+    ctx.lineWidth = 1;
+    for(let c=0;c<=COLS;c++){
+      ctx.beginPath();
+      ctx.moveTo(c*cell,0); ctx.lineTo(c*cell, ROWS*cell);
+      ctx.stroke();
+    }
+    for(let r=0;r<=ROWS;r++){
+      ctx.beginPath();
+      ctx.moveTo(0,r*cell); ctx.lineTo(COLS*cell, r*cell);
+      ctx.stroke();
+    }
+    // settled blocks
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        if(grid[r][c]){
+          drawCell(ctx, c*cell, r*cell, cell, COLORS[grid[r][c]]);
+        }
+      }
+    }
+    // ghost piece
+    let ghostDist = 0;
+    while(!collides(current, ghostDist+1, 0)) ghostDist++;
+    const shape = current.shape;
+    for(let r=0;r<shape.length;r++){
+      for(let c=0;c<shape[r].length;c++){
+        if(shape[r][c]){
+          const gr = current.row + ghostDist + r;
+          const gc = current.col + c;
+          if(gr>=0){
+            ctx.strokeStyle = COLORS[current.type];
+            ctx.globalAlpha = 0.35;
+            ctx.strokeRect(gc*cell+2, gr*cell+2, cell-4, cell-4);
+            ctx.globalAlpha = 1;
+          }
+        }
+      }
+    }
+    // current piece
+    for(let r=0;r<shape.length;r++){
+      for(let c=0;c<shape[r].length;c++){
+        if(shape[r][c]){
+          const nr = current.row + r;
+          const nc = current.col + c;
+          if(nr>=0) drawCell(ctx, nc*cell, nr*cell, cell, COLORS[current.type]);
+        }
+      }
+    }
+  }
+
+  function drawNext(){
+    if(!nextCtx) return;
+    nextCtx.clearRect(0,0,nextCanvas.width, nextCanvas.height);
+    const shape = SHAPES[nextType];
+    const size = 18;
+    const offX = (nextCanvas.width - shape[0].length*size)/2;
+    const offY = (nextCanvas.height - shape.length*size)/2;
+    for(let r=0;r<shape.length;r++){
+      for(let c=0;c<shape[r].length;c++){
+        if(shape[r][c]){
+          drawCell(nextCtx, offX + c*size, offY + r*size, size, COLORS[nextType]);
+        }
+      }
+    }
+  }
+
+  function loop(time){
+    if(!paused && !gameOver){
+      if(!lastTime) lastTime = time;
+      const delta = time - lastTime;
+      lastTime = time;
+      accumulator += delta;
+      if(accumulator > dropInterval){
+        softDropStep();
+        accumulator = 0;
+      }
+    } else {
+      lastTime = time;
+    }
+    requestAnimationFrame(loop);
+  }
+
+  function endGame(){
+    gameOver = true;
+    paused = true;
+    showOverlay('O\'YIN TUGADI', 'Yakuniy hisob: ' + score, 'QAYTA BOSHLASH');
+  }
+
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlay-title');
+  const overlayText = document.getElementById('overlay-text');
+  const overlayBtn = document.getElementById('overlay-btn');
+
+  function showOverlay(title, text, btnLabel){
+    overlayTitle.textContent = title;
+    overlayText.textContent = text;
+    overlayBtn.textContent = btnLabel;
+    overlay.classList.add('show');
+  }
+  function hideOverlay(){ overlay.classList.remove('show'); }
+
+  function resetGame(){
+    grid = createGrid();
+    score = 0; level = 1; linesCleared = 0; dropInterval = 800;
+    gameOver = false;
+    updateStats();
+    nextType = randomType();
+    spawn();
+    render();
+  }
+
+  overlayBtn.addEventListener('click', ()=>{
+    hideOverlay();
+    resetGame();
+    paused = false;
+    started = true;
+  });
+
+  function togglePause(){
+    if(!started || gameOver) return;
+    paused = !paused;
+    if(paused){
+      showOverlay('PAUZA', 'Davom etish uchun tugmani bosing.', 'DAVOM ETISH');
+    } else {
+      hideOverlay();
+    }
+  }
+
+  // Keyboard (desktop)
+  document.addEventListener('keydown', (e)=>{
+    if(!started || paused || gameOver){
+      if(e.code === 'Space' && overlay.classList.contains('show')){
+        overlayBtn.click();
+      }
+      return;
+    }
+    switch(e.code){
+      case 'ArrowLeft': tryMove(0,-1); break;
+      case 'ArrowRight': tryMove(0,1); break;
+      case 'ArrowDown': softDropStep(); accumulator = 0; break;
+      case 'ArrowUp': tryRotate(); break;
+      case 'Space': e.preventDefault(); hardDrop(); break;
+      case 'KeyP': togglePause(); break;
+    }
+  });
+
+  // Mobile touch controls
+  if(isMobile){
+    function bindBtn(id, fn){
+      const el = document.getElementById(id);
+      el.addEventListener('touchstart', (e)=>{
+        e.preventDefault();
+        if(!started || paused || gameOver) return;
+        fn();
+      }, {passive:false});
+      el.addEventListener('click', ()=>{
+        if(!started || paused || gameOver) return;
+        fn();
+      });
+    }
+    bindBtn('btn-left', ()=>tryMove(0,-1));
+    bindBtn('btn-right', ()=>tryMove(0,1));
+    bindBtn('btn-down', ()=>{ softDropStep(); accumulator = 0; });
+    bindBtn('btn-rot', tryRotate);
+    bindBtn('btn-drop', hardDrop);
+    document.getElementById('btn-pause').addEventListener('click', togglePause);
+    document.getElementById('btn-pause').addEventListener('touchstart', (e)=>{ e.preventDefault(); togglePause(); }, {passive:false});
+  }
+
+  window.addEventListener('resize', ()=>{
+    sizeCanvas();
+    render();
+  });
+
+  sizeCanvas();
+  nextType = randomType();
+  current = newPiece(randomType());
+  render();
+  showOverlay('WEBTET', isMobile ? 'Ekrandagi tugmalar bilan boshqaring.' : 'Klaviatura bilan boshqaring: strelkalar, SPACE, P.', 'BOSHLASH');
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
